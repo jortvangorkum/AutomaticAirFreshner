@@ -35,10 +35,15 @@ class Blinking {
             digitalWrite(ledPin, ledState);
         }
     }
+
+    void UpdateTimer(int on, int off) {
+      onTime = on;
+      offTime = off;
+    }
 };
 
 // Create the leds with the timing and pin
-Blinking led1(8, 100, 400);
+Blinking led1(8, 300, 500);
 Blinking led2(13, 350, 350);
 
 void setup() {
@@ -47,6 +52,17 @@ void setup() {
 
 // Loops throught the update function of the leds
 void loop() {
-    led1.Update();
+    led1.UpdateTimer(300, 500);
+    for (int t = 0; t < 2; t++) {
+        led1.Update();
+    }
+    led1.UpdateTimer(1000, 500);
+    for (int t = 0; t < 2; t++) {
+        led1.Update();
+    }
+    led1.UpdateTimer(300, 500);
+    for (int t = 0; t < 2; t++) {
+        led1.Update();
+    }
     led2.Update();
 }
