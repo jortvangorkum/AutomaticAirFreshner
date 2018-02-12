@@ -8,38 +8,39 @@ class Blinking {
     int ledState;
     unsigned long previousMillis;
 
-    // Constructor to give the variables value
     public:
-    Blinking(int pin, long on, long off) {
-        ledPin = pin;
-        pinMode(ledPin, OUTPUT);
+        // Constructor to give the variables value
+        Blinking(int pin, long on, long off) {
+            ledPin = pin;
+            pinMode(ledPin, OUTPUT);
 
-        onTime = on;
-        offTime = off;
+            onTime = on;
+            offTime = off;
 
-        ledState = LOW;
-        previousMillis = 0;
-    }
-
-    // Function to update the led to on or off
-    void Update() {
-        unsigned long currentMillis = millis();
-
-        if ((ledState == HIGH) && (currentMillis - previousMillis >= onTime)) {
             ledState = LOW;
-            previousMillis = currentMillis;
-            digitalWrite(ledPin, ledState);
-        } else if ((ledState == LOW) && (currentMillis - previousMillis >= offTime)) {
-            ledState = HIGH;
-            previousMillis = currentMillis;
-            digitalWrite(ledPin, ledState);
+            previousMillis = 0;
+        };
+        // Function to set the onTime and offTime different
+        void Set(long on, long off) {
+            onTime = on;
+            offTime = off;
         }
-    }
+        // Function to update the led to on or off
+        void Update() {
+            unsigned long currentMillis = millis();
 
-    void UpdateTimer(int on, int off) {
-      onTime = on;
-      offTime = off;
-    }
+            if ((ledState == HIGH) && (currentMillis - previousMillis >= onTime)) {
+                ledState = LOW;
+                previousMillis = currentMillis;
+                digitalWrite(ledPin, ledState);
+            } else if ((ledState == LOW) && (currentMillis - previousMillis >= offTime)) {
+                ledState = HIGH;
+                previousMillis = currentMillis;
+                digitalWrite(ledPin, ledState);
+            }
+        }
+
+
 };
 
 // Create the leds with the timing and pin
@@ -52,17 +53,6 @@ void setup() {
 
 // Loops throught the update function of the leds
 void loop() {
-    led1.UpdateTimer(300, 500);
-    for (int t = 0; t < 2; t++) {
-        led1.Update();
-    }
-    led1.UpdateTimer(1000, 500);
-    for (int t = 0; t < 2; t++) {
-        led1.Update();
-    }
-    led1.UpdateTimer(300, 500);
-    for (int t = 0; t < 2; t++) {
-        led1.Update();
-    }
+    led1.Update();
     led2.Update();
 }
