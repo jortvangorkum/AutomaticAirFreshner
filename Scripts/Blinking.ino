@@ -39,8 +39,6 @@ class Blinking {
                 digitalWrite(ledPin, ledState);
             }
         }
-
-
 };
 
 // Create the leds with the timing and pin
