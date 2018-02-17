@@ -3,15 +3,18 @@
 */
 #include <LiquidCrystal.h>
 
-
 /*
   Constant variables
 */
 // Input pins for LCD screen
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
-// Input pins for spray delay
-const int buttonPinDelayLow = 9;
-const int buttonPinDelayHigh = 10;
+// Button to switch menus
+const int buttonPinMenuSwitch = 8;
+// Input pins for minus and plus
+const int buttonPinMinus = 9;
+const int buttonPinPlus = 10;
+
+
 /*
   States:
   - notInUse = 0
@@ -23,13 +26,25 @@ const int buttonPinDelayHigh = 10;
   - menuActive = 6
 */
 int currentState;
-int sprayDelay;
-int sprayDelayLast;
-// Button for change spray delay;
-int buttonStateDelayLow;
-int buttonStateDelayLowLast;
-int buttonStateDelayHigh;
-int buttonStateDelayHighLast;
+/*
+  States:
+  - Spray Delay = 0
+  - Ambient Temperature = 1
+  - Remaining Spray Shots = 2
+*/
+int currentMenuState;
+// Delay before spraying
+int sprayDelaySeconds;
+int sprayDelaySecondsLast;
+// Button states for spray delay
+int buttonStateMinus;
+int buttonStateMinusLast;
+int buttonStatePlus;
+int buttonStatePlusLast;
+// Button states to switch menus
+int buttonStateMenuSwitch;
+int buttonStateMenuSwitchLast;
+
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
@@ -39,32 +54,86 @@ void setup() {
     Assign values to variables
   */
   currentState = 0;
-  sprayDelay = 0;
-  buttonStateDelayLowLast = HIGH;
-  buttonStateDelayHighLast = HIGH;
+  sprayDelaySeconds = 0;
+  buttonStateMinusLast = HIGH;
+  buttonStatePlusLast = HIGH;
   /*
     Assign Pins to OUTPUT or INPUT
   */
-  pinMode(buttonPinDelayLow, INPUT);
-  pinMode(buttonPinDelayHigh, INPUT);
+  pinMode(buttonPinMinus, INPUT);
+  pinMode(buttonPinPlus, INPUT);
+  pinMode(buttonPinMenuSwitch, INPUT);
   // Set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 }
 
 void loop() {
-  determineState();
-  changeSprayDelay();
-  displaySprayDelay();
+  states();
+  menuStates();
+  determineStates();
+  determineMenuStates();
 }
 
-void determineState() {
-  notInUse();
-  useTypeUnknown();
-  useNumber1();
-  useNumber2();
-  useCleaning();
-  triggeredShot();
-  menuActive();
+void states() {
+  switch(currentState) {
+    case 0:
+      notInUse();
+      break;
+    case 1:
+      useTypeUnknown();
+      break;
+    case 2:
+      useNumber1();
+      break;
+    case 3:
+      useNumber2();
+      break;
+    case 4:
+      useCleaning();
+      break;
+    case 5:
+      triggeredShot();
+      break;
+    case 6:
+      menuActive();
+      break;
+  }
+}
+
+void menuStates() {
+  switch(currentMenuState) {
+    case 0:
+      sprayDelay();
+      break;
+    case 1:
+      ambientTemperature();
+      break;
+    case 2:
+      remainingSprayShots();
+      break;
+    default:
+      ambientTemperature();
+      break;
+  }
+}
+
+void determineMenuStates() {
+  buttonStateMenuSwitch = digitalRead(buttonPinMenuSwitch);
+
+  if (buttonStateMenuSwitchLast != buttonStateMenuSwitch && buttonStateMenuSwitch == LOW) {
+    if (currentMenuState == 2) {
+      currentMenuState = 0;
+    } else {
+      currentMenuState += 1;
+    }
+    lcd.clear();
+  }
+
+  buttonStateMenuSwitchLast = buttonStateMenuSwitch;
+}
+
+void determineStates() {
+
 }
 
 void notInUse() {
@@ -119,32 +188,50 @@ void spray(int times) {
   }
 }
 
+void sprayDelay() {
+  displaySprayDelay();
+  changeSprayDelay();
+}
+
+void ambientTemperature() {
+  displayTemperature();
+}
+
+void remainingSprayShots() {
+  displaySprayShot();
+  resetSprayShot();
+}
+
 void displayTemperature() {
 
 }
 
 void displaySprayShot() {
+  lcd.print("Spray Shot");
+}
+
+void resetSprayShot() {
 
 }
 
 void changeSprayDelay() {
-  buttonStateDelayLow = digitalRead(buttonPinDelayLow);
-  buttonStateDelayHigh = digitalRead(buttonPinDelayHigh);
+  buttonStateMinus = digitalRead(buttonPinMinus);
+  buttonStatePlus = digitalRead(buttonPinPlus);
 
-  if (buttonStateDelayLowLast != buttonStateDelayLow && buttonStateDelayLow == LOW) {
-    if (sprayDelay > 0) {
-      sprayDelay -= 1;
+  if (buttonStateMinusLast != buttonStateMinus && buttonStateMinus == LOW) {
+    if (sprayDelaySeconds > 0) {
+      sprayDelaySeconds -= 1;
     }
-  } else if (buttonStateDelayHighLast != buttonStateDelayHigh && buttonStateDelayHigh == LOW) {
-    sprayDelay += 1;
+  } else if (buttonStatePlusLast != buttonStatePlus && buttonStatePlus == LOW) {
+    sprayDelaySeconds += 1;
   }
 
-  buttonStateDelayLowLast = buttonStateDelayLow;
-  buttonStateDelayHighLast = buttonStateDelayHigh;
+  buttonStateMinusLast = buttonStateMinus;
+  buttonStatePlusLast = buttonStatePlus;
 }
 
 void displaySprayDelay() {
-  if (lengthInt(sprayDelay) < lengthInt(sprayDelayLast)) {
+  if (lengthInt(sprayDelaySeconds) < lengthInt(sprayDelaySecondsLast)) {
     lcd.clear();
   }
 
@@ -152,16 +239,12 @@ void displaySprayDelay() {
   lcd.print("Spray Delay");
 
   lcd.setCursor(12, 0);
-  lcd.print(sprayDelay, DEC);
+  lcd.print(sprayDelaySeconds, DEC);
 
-  lcd.setCursor(12 + lengthInt(sprayDelay), 0);
+  lcd.setCursor(12 + lengthInt(sprayDelaySeconds), 0);
   lcd.print("s");
 
-  sprayDelayLast = sprayDelay;
-}
-
-void resetSprayShot() {
-
+  sprayDelaySecondsLast = sprayDelaySeconds;
 }
 
 int lengthInt(int integer) {
