@@ -11,12 +11,12 @@ class Timer {
     unsigned long previousMillis;
     long interval;
     boolean done;
-    boolean unlimitedTrue;
+    boolean unlimited;
 
     public:
-        Timer(long inter, boolean uTrue) {
+        Timer(long inter, boolean unlim) {
             interval = inter;
-            unlimitedTrue = uTrue;
+            unlimited = unlim;
 
             previousMillis = 0;
             done = false;
@@ -25,11 +25,11 @@ class Timer {
         boolean Update() {
             unsigned long currentMillis = millis();
 
-            if(unlimitedTrue) {
+            if (unlimited) {
               if (currentMillis - previousMillis >= interval) {
                 return true;
               } else {
-                  return false;
+                return false;
               }
             } else {
               if (done != true) {
@@ -92,11 +92,15 @@ int buttonStateMenuSwitch;
 int buttonStateMenuSwitchLast;
 // Amount of spray shots left
 int sprayShots;
-bool resettingSprayShots;
+bool buttonMinusPressed;
+bool buttonPlusPressed;
 
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
+/*
+  Timers
+*/
 
 void setup() {
   /*
@@ -105,7 +109,8 @@ void setup() {
   currentState = 0;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
-  resettingSprayShots = false;
+  buttonMinusPressed = false;
+  buttonPlusPressed = false;
   buttonStateMinusLast = HIGH;
   buttonStatePlusLast = HIGH;
   /*
@@ -185,13 +190,46 @@ void determineMenuStates() {
 }
 
 void determineStates() {
-  /*Check de lightsensor (LDR)
-   LDRvalue = analogRead(LDR)
-   if (LDRvalue > 500){
-     currentState = 1;
-   }
-   gaan we zo de states determen?
-   */
+  // Check if notInUse
+  LDRvalue = analogRead(LDR);
+  if (LDRvalue < 500){
+    currentState = 0;
+  }
+  //Plus magnetic contact
+
+  // Check if useTypeUnknown
+  if(currentState == 0) {
+    LDRvalue = analogRead(LDR);
+    if (LDRvalue > 500){
+      currentState = 1;
+    }
+  }
+  // Check if useNumber1
+  if(currentState == 4) {
+
+  }
+  // Check if useNumber2
+  if(currentState == 1) {
+
+  }
+  // Check if useCleaning
+  if(currentState == 4) {
+
+  }
+  // Check if triggeredShot
+  if(currentState == 1
+  || currentState == 2
+  || currentState == 3
+  || currentState == 4) {
+
+  }
+  // Check if menuActive
+  if(currentState == 1
+  || currentState == 2
+  || currentState == 3
+  || currentState == 4) {
+
+  }
 }
 
 void notInUse() {
@@ -199,45 +237,27 @@ void notInUse() {
 }
 
 void useTypeUnknown() {
-  if(currentState == 0) {
 
-  }
 }
 
 void useNumber1() {
-  if(currentState == 4) {
 
-  }
 }
 
 void useNumber2() {
-  if(currentState == 1) {
 
-  }
 }
 
 void useCleaning() {
-  if(currentState == 4) {
 
-  }
 }
 
 void triggeredShot() {
-  if(currentState == 1
-  || currentState == 2
-  || currentState == 3
-  || currentState == 4) {
 
-  }
 }
 
 void menuActive() {
-  if(currentState == 1
-  || currentState == 2
-  || currentState == 3
-  || currentState == 4) {
 
-  }
 }
 
 void spray(int times) {
@@ -265,13 +285,11 @@ void displayTemperature() {
 }
 
 void displaySprayShot() {
-  if (!resettingSprayShots) {
-    lcd.setCursor(0, 0);
-    lcd.print("Spray Shots");
+  lcd.setCursor(0, 0);
+  lcd.print("Spray Shots");
 
-    lcd.setCursor(12, 0);
-    lcd.print(sprayShots, DEC);
-  }
+  lcd.setCursor(12, 0);
+  lcd.print(sprayShots, DEC);
 }
 
 void resetSprayShot() {
@@ -279,24 +297,15 @@ void resetSprayShot() {
   buttonStatePlus = digitalRead(buttonPinPlus);
 
   if (buttonStateMinusLast != buttonStateMinus && buttonStateMinus == LOW) {
-    resettingSprayShots = true;
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.blink();
-    lcd.print("Reset spray shot");
-    lcd.setCursor(0, 1);
-    lcd.print("(y/n)");
-    Timer timer1(10000, true);
-    if (timer1.Update()) {
-      if (buttonStatePlusLast != buttonStatePlus && buttonStatePlus == LOW) {
-        sprayShots = 2400;
-        resettingSprayShots = false;
-        lcd.clear();
-      } else if (buttonStateMinusLast != buttonStateMinus && buttonStateMinus == LOW) {
-        resettingSprayShots = false;
-        lcd.clear();
-      }
-    }
+    buttonMinusPressed = true;
+  }
+
+  if (buttonStatePlusLast != buttonStatePlus && buttonStatePlus == LOW) {
+    buttonPlusPressed = true;
+  }
+
+  if (buttonMinusPressed && buttonPlusPressed) {
+    sprayShots = 2400;
   }
 
   buttonStateMinusLast = buttonStateMinus;
@@ -350,6 +359,5 @@ int lengthInt(int integer) {
 
   return result;
 }
-
 
 
