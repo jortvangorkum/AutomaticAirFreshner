@@ -4,6 +4,47 @@
 #include <LiquidCrystal.h>
 
 /*
+  Classes
+*/
+
+class Timer {
+    unsigned long previousMillis;
+    long interval;
+    boolean done;
+    boolean unlimitedTrue;
+
+    public:
+        Timer(long inter, boolean uTrue) {
+            interval = inter;
+            unlimitedTrue = uTrue;
+
+            previousMillis = 0;
+            done = false;
+        }
+
+        boolean Update() {
+            unsigned long currentMillis = millis();
+
+            if(unlimitedTrue) {
+              if (currentMillis - previousMillis >= interval) {
+                return true;
+              } else {
+                  return false;
+              }
+            } else {
+              if (done != true) {
+                if (currentMillis - previousMillis >= interval) {
+                  done = true;
+                  return true;
+                }
+              } else {
+                  return false;
+              }
+            }
+        }
+};
+
+/*
   Constant variables
 */
 // Input pins for LCD screen
@@ -44,6 +85,9 @@ int buttonStatePlusLast;
 // Button states to switch menus
 int buttonStateMenuSwitch;
 int buttonStateMenuSwitchLast;
+// Amount of spray shots left
+int sprayShots;
+bool resettingSprayShots;
 
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -55,6 +99,8 @@ void setup() {
   */
   currentState = 0;
   sprayDelaySeconds = 0;
+  sprayShots = 2400;
+  resettingSprayShots = false;
   buttonStateMinusLast = HIGH;
   buttonStatePlusLast = HIGH;
   /*
@@ -207,11 +253,42 @@ void displayTemperature() {
 }
 
 void displaySprayShot() {
-  lcd.print("Spray Shot");
+  if (!resettingSprayShots) {
+    lcd.setCursor(0, 0);
+    lcd.print("Spray Shots");
+
+    lcd.setCursor(12, 0);
+    lcd.print(sprayShots, DEC);
+  }
 }
 
 void resetSprayShot() {
+  buttonStateMinus = digitalRead(buttonPinMinus);
+  buttonStatePlus = digitalRead(buttonPinPlus);
 
+  if (buttonStateMinusLast != buttonStateMinus && buttonStateMinus == LOW) {
+    resettingSprayShots = true;
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.blink();
+    lcd.print("Reset spray shot");
+    lcd.setCursor(0, 1);
+    lcd.print("(y/n)");
+    Timer timer1(10000, true);
+    if (timer1.Update()) {
+      if (buttonStatePlusLast != buttonStatePlus && buttonStatePlus == LOW) {
+        sprayShots = 2400;
+        resettingSprayShots = false;
+        lcd.clear();
+      } else if (buttonStateMinusLast != buttonStateMinus && buttonStateMinus == LOW) {
+        resettingSprayShots = false;
+        lcd.clear();
+      }
+    }
+  }
+
+  buttonStateMinusLast = buttonStateMinus;
+  buttonStatePlusLast = buttonStatePlus;
 }
 
 void changeSprayDelay() {
