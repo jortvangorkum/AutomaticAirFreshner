@@ -55,6 +55,11 @@ const int buttonPinMenuSwitch = 8;
 const int buttonPinMinus = 9;
 const int buttonPinPlus = 10;
 
+// Input pins sensors
+const int LDR = 0;
+
+// variables for sensors
+int LDRvalue = 0;
 
 /*
   States:
@@ -109,6 +114,7 @@ void setup() {
   pinMode(buttonPinMinus, INPUT);
   pinMode(buttonPinPlus, INPUT);
   pinMode(buttonPinMenuSwitch, INPUT);
+  pinMode(LDR, INPUT);
   // Set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 }
@@ -179,7 +185,13 @@ void determineMenuStates() {
 }
 
 void determineStates() {
-
+  /*Check de lightsensor (LDR)
+   LDRvalue = analogRead(LDR)
+   if (LDRvalue > 500){
+     currentState = 1;
+   }
+   gaan we zo de states determen?
+   */
 }
 
 void notInUse() {
