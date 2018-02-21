@@ -94,6 +94,8 @@ int buttonStateMenuSwitchLast;
 int sprayShots;
 bool buttonMinusPressed;
 bool buttonPlusPressed;
+// Ambient Temperature
+int temperature;
 
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -281,11 +283,24 @@ void remainingSprayShots() {
 }
 
 void displayTemperature() {
+  lcd.home();
+  lcd.print("Ambient");
 
+  lcd.setCursor(0, 1);
+  lcd.print("Temperature");
+
+  lcd.setCursor(12, 1);
+  lcd.print(temperature, DEC);
+
+  lcd.setCursor(12 + lengthInt(temperature), 1);
+  lcd.print((char)223);
+
+  lcd.setCursor(13 + lengthInt(temperature), 1);
+  lcd.print("C");
 }
 
 void displaySprayShot() {
-  lcd.setCursor(0, 0);
+  lcd.home();
   lcd.print("Spray Shots");
 
   lcd.setCursor(12, 0);
@@ -306,6 +321,8 @@ void resetSprayShot() {
 
   if (buttonMinusPressed && buttonPlusPressed) {
     sprayShots = 2400;
+    buttonMinusPressed = false;
+    buttonPlusPressed = false;
   }
 
   buttonStateMinusLast = buttonStateMinus;
@@ -333,7 +350,7 @@ void displaySprayDelay() {
     lcd.clear();
   }
 
-  lcd.setCursor(0, 0);
+  lcd.home();
   lcd.print("Spray Delay");
 
   lcd.setCursor(12, 0);
