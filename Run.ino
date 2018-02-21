@@ -54,13 +54,10 @@ const int buttonPinMenuSwitch = 8;
 // Input pins for minus and plus
 const int buttonPinMinus = 9;
 const int buttonPinPlus = 10;
-
 // Input pins sensors
 const int LDR = 0;
-
-// variables for sensors
-int LDRvalue = 0;
-
+// Integrated LED
+const int integratedLedPin = 13;
 /*
   States:
   - notInUse = 0
@@ -77,6 +74,7 @@ int currentState;
   - Spray Delay = 0
   - Ambient Temperature = 1
   - Remaining Spray Shots = 2
+  - Return To Not In Use = 3
 */
 int currentMenuState;
 // Delay before spraying
@@ -96,7 +94,10 @@ bool buttonMinusPressed;
 bool buttonPlusPressed;
 // Ambient Temperature
 int temperature;
-
+// Integrated LED state
+int integratedLedState;
+// Variables for sensors
+int LDRvalue = 0;
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
@@ -108,13 +109,14 @@ void setup() {
   /*
     Assign values to variables
   */
-  currentState = 0;
+  currentState = 1;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
   buttonMinusPressed = false;
   buttonPlusPressed = false;
   buttonStateMinusLast = HIGH;
   buttonStatePlusLast = HIGH;
+  integratedLedState = LOW;
   /*
     Assign Pins to OUTPUT or INPUT
   */
@@ -122,15 +124,20 @@ void setup() {
   pinMode(buttonPinPlus, INPUT);
   pinMode(buttonPinMenuSwitch, INPUT);
   pinMode(LDR, INPUT);
+  pinMode(integratedLedPin, OUTPUT);
   // Set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 }
 
 void loop() {
   states();
-  menuStates();
   determineStates();
-  determineMenuStates();
+  if (currentState == 6) {
+    menuStates();
+    determineMenuStates();
+  } else {
+    normalDisplay();
+  }
 }
 
 void states() {
@@ -170,8 +177,11 @@ void menuStates() {
     case 2:
       remainingSprayShots();
       break;
+    case 3:
+      returnToNotInUse();
+      break;
     default:
-      ambientTemperature();
+      returnToNotInUse();
       break;
   }
 }
@@ -180,7 +190,7 @@ void determineMenuStates() {
   buttonStateMenuSwitch = digitalRead(buttonPinMenuSwitch);
 
   if (buttonStateMenuSwitchLast != buttonStateMenuSwitch && buttonStateMenuSwitch == LOW) {
-    if (currentMenuState == 2) {
+    if (currentMenuState == 3) {
       currentMenuState = 0;
     } else {
       currentMenuState += 1;
@@ -193,19 +203,19 @@ void determineMenuStates() {
 
 void determineStates() {
   // Check if notInUse
-  LDRvalue = analogRead(LDR);
-  if (LDRvalue < 500){
-    currentState = 0;
-  }
+  // LDRvalue = analogRead(LDR);
+  // if (LDRvalue < 500){
+  //   currentState = 0;
+  // }
   //Plus magnetic contact
 
   // Check if useTypeUnknown
-  if(currentState == 0) {
-    LDRvalue = analogRead(LDR);
-    if (LDRvalue > 500){
-      currentState = 1;
-    }
-  }
+  // if(currentState == 0) {
+  //   LDRvalue = analogRead(LDR);
+  //   if (LDRvalue > 500){
+  //     currentState = 1;
+  //   }
+  // }
   // Check if useNumber1
   if(currentState == 4) {
 
@@ -230,16 +240,23 @@ void determineStates() {
   || currentState == 2
   || currentState == 3
   || currentState == 4) {
+    buttonStateMenuSwitch = digitalRead(buttonPinMenuSwitch);
 
+    if (buttonStateMenuSwitch != buttonStateMenuSwitchLast && buttonStateMenuSwitch == LOW) {
+      currentState = 6;
+      lcd.clear();
+    }
+
+    buttonStateMenuSwitchLast = buttonStateMenuSwitch;
   }
 }
 
 void notInUse() {
-
+  lcd.noDisplay();
 }
 
 void useTypeUnknown() {
-
+  lcd.display();
 }
 
 void useNumber1() {
@@ -268,42 +285,48 @@ void spray(int times) {
   }
 }
 
+void normalDisplay() {
+  displayTemperature(0);
+  displaySprayShot(1);
+}
+
 void sprayDelay() {
-  displaySprayDelay();
+  displaySprayDelay(0);
   changeSprayDelay();
 }
 
 void ambientTemperature() {
-  displayTemperature();
+  displayTemperature(0);
 }
 
 void remainingSprayShots() {
-  displaySprayShot();
+  displaySprayShot(0);
   resetSprayShot();
 }
 
-void displayTemperature() {
-  lcd.home();
-  lcd.print("Ambient");
+void returnToNotInUse() {
+  currentState = 0;
+}
 
-  lcd.setCursor(0, 1);
+void displayTemperature(int row) {
+  lcd.setCursor(0, row);
   lcd.print("Temperature");
 
-  lcd.setCursor(12, 1);
+  lcd.setCursor(12, row);
   lcd.print(temperature, DEC);
 
-  lcd.setCursor(12 + lengthInt(temperature), 1);
+  lcd.setCursor(12 + lengthInt(temperature), row);
   lcd.print((char)223);
 
-  lcd.setCursor(13 + lengthInt(temperature), 1);
+  lcd.setCursor(13 + lengthInt(temperature), row);
   lcd.print("C");
 }
 
-void displaySprayShot() {
-  lcd.home();
+void displaySprayShot(int row) {
+  lcd.setCursor(0, row);
   lcd.print("Spray Shots");
 
-  lcd.setCursor(12, 0);
+  lcd.setCursor(12, row);
   lcd.print(sprayShots, DEC);
 }
 
@@ -345,18 +368,18 @@ void changeSprayDelay() {
   buttonStatePlusLast = buttonStatePlus;
 }
 
-void displaySprayDelay() {
+void displaySprayDelay(int row) {
   if (lengthInt(sprayDelaySeconds) < lengthInt(sprayDelaySecondsLast)) {
     lcd.clear();
   }
 
-  lcd.home();
+  lcd.setCursor(0, row);
   lcd.print("Spray Delay");
 
-  lcd.setCursor(12, 0);
+  lcd.setCursor(12, row);
   lcd.print(sprayDelaySeconds, DEC);
 
-  lcd.setCursor(12 + lengthInt(sprayDelaySeconds), 0);
+  lcd.setCursor(12 + lengthInt(sprayDelaySeconds), row);
   lcd.print("s");
 
   sprayDelaySecondsLast = sprayDelaySeconds;
@@ -376,5 +399,4 @@ int lengthInt(int integer) {
 
   return result;
 }
-
 
