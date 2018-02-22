@@ -48,12 +48,12 @@ class Timer {
   Constant variables
 */
 // Input pins for LCD screen
-const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+const int rs = 8, en = 7, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
 // Button to switch menus
-const int buttonPinMenuSwitch = 8;
+const int buttonPinMenuSwitch = 2;
 // Input pins for minus and plus
-const int buttonPinMinus = 9;
-const int buttonPinPlus = 10;
+const int buttonPinMinus = A0;
+const int buttonPinPlus = A1;
 // Input pins sensors
 const int LDR = 0;
 // Integrated LED
@@ -288,6 +288,7 @@ void spray(int times) {
 void normalDisplay() {
   displayTemperature(0);
   displaySprayShot(1);
+  manualSprayShot();
 }
 
 void sprayDelay() {
@@ -330,6 +331,45 @@ void displaySprayShot(int row) {
   lcd.print(sprayShots, DEC);
 }
 
+void displaySprayDelay(int row) {
+  if (lengthInt(sprayDelaySeconds) < lengthInt(sprayDelaySecondsLast)) {
+    lcd.clear();
+  }
+
+  lcd.setCursor(0, row);
+  lcd.print("Spray Delay");
+
+  lcd.setCursor(12, row);
+  lcd.print(sprayDelaySeconds, DEC);
+
+  lcd.setCursor(12 + lengthInt(sprayDelaySeconds), row);
+  lcd.print("s");
+
+  sprayDelaySecondsLast = sprayDelaySeconds;
+}
+
+void manualSprayShot() {
+  buttonStateMinus = digitalRead(buttonPinMinus);
+  buttonStatePlus = digitalRead(buttonPinPlus);
+
+  if (buttonStateMinusLast != buttonStateMinus && buttonStateMinus == LOW) {
+    buttonMinusPressed = true;
+  }
+
+  if (buttonStatePlusLast != buttonStatePlus && buttonStatePlus == LOW) {
+    buttonPlusPressed = true;
+  }
+
+  if (buttonMinusPressed && buttonPlusPressed) {
+    spray(1);
+    buttonMinusPressed = false;
+    buttonPlusPressed = false;
+  }
+
+  buttonStateMinusLast = buttonStateMinus;
+  buttonStatePlusLast = buttonStatePlus;
+}
+
 void resetSprayShot() {
   buttonStateMinus = digitalRead(buttonPinMinus);
   buttonStatePlus = digitalRead(buttonPinPlus);
@@ -368,22 +408,6 @@ void changeSprayDelay() {
   buttonStatePlusLast = buttonStatePlus;
 }
 
-void displaySprayDelay(int row) {
-  if (lengthInt(sprayDelaySeconds) < lengthInt(sprayDelaySecondsLast)) {
-    lcd.clear();
-  }
-
-  lcd.setCursor(0, row);
-  lcd.print("Spray Delay");
-
-  lcd.setCursor(12, row);
-  lcd.print(sprayDelaySeconds, DEC);
-
-  lcd.setCursor(12 + lengthInt(sprayDelaySeconds), row);
-  lcd.print("s");
-
-  sprayDelaySecondsLast = sprayDelaySeconds;
-}
 
 int lengthInt(int integer) {
   int result = 0;
