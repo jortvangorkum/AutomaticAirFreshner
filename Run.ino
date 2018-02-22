@@ -48,7 +48,7 @@ class Timer {
   Constant variables
 */
 // Input pins for LCD screen
-const int rs = 8, en = 7, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
+const int rs = 12, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4;
 // Button to switch menus
 const int buttonPinMenuSwitch = 2;
 // Input pins for minus and plus
@@ -58,6 +58,8 @@ const int buttonPinPlus = A1;
 const int LDR = 0;
 // Integrated LED
 const int integratedLedPin = 13;
+// RGB LED
+const int rPin = 11, gPin = 10, bPin = 9;
 /*
   States:
   - notInUse = 0
@@ -97,7 +99,7 @@ int temperature;
 // Integrated LED state
 int integratedLedState;
 // Variables for sensors
-int LDRvalue = 0;
+int LDRvalue;
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
@@ -109,6 +111,7 @@ void setup() {
   /*
     Assign values to variables
   */
+  LDRvalue = 0;
   currentState = 1;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
@@ -125,6 +128,9 @@ void setup() {
   pinMode(buttonPinMenuSwitch, INPUT);
   pinMode(LDR, INPUT);
   pinMode(integratedLedPin, OUTPUT);
+  pinMode(rPin, OUTPUT);
+  pinMode(gPin, OUTPUT);
+  pinMode(bPin, OUTPUT);
   // Set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 }
@@ -253,29 +259,42 @@ void determineStates() {
 
 void notInUse() {
   lcd.noDisplay();
+  // Off
+  setRGBColor(0, 0, 0);
 }
 
 void useTypeUnknown() {
   lcd.display();
+  // Purple
+  setRGBColor(255, 0, 255);
 }
 
 void useNumber1() {
-
+  // Light Blue
+  setRGBColor(0, 255, 255);
 }
 
 void useNumber2() {
+  // Green
+  setRGBColor(0, 255, 0);
 
 }
 
 void useCleaning() {
+  // White
+  setRGBColor(255, 255, 255);
 
 }
 
 void triggeredShot() {
+  // Red
+  setRGBColor(255, 0, 0);
 
 }
 
 void menuActive() {
+  // Blue
+  setRGBColor(0, 0, 255);
 
 }
 
@@ -422,5 +441,11 @@ int lengthInt(int integer) {
   }
 
   return result;
+}
+
+void setRGBColor(int red, int green, int blue) {
+  analogWrite(rPin, red);
+  analogWrite(gPin, green);
+  analogWrite(bPin, blue);
 }
 
