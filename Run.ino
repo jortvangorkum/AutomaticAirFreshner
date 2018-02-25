@@ -2,7 +2,9 @@
   Libraries
 */
 #include <LiquidCrystal.h>
-
+#include <NewPing.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 /*
   Classes
 */
@@ -55,7 +57,9 @@ const int buttonPinMenuSwitch = 2;
 const int buttonPinMinus = A0;
 const int buttonPinPlus = A1;
 // Input pins sensors
-const int LDR = 0;
+const int Magnetpin = A3;
+const int LDRpin = A2;
+const int ledPin =  13;
 // Integrated LED
 const int integratedLedPin = 13;
 // RGB LED
@@ -100,6 +104,9 @@ int temperature;
 int integratedLedState;
 // Variables for sensors
 int LDRvalue;
+int Magnetvalue;
+int Distancevalue;
+int Motionvalue;
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
@@ -112,6 +119,9 @@ void setup() {
     Assign values to variables
   */
   LDRvalue = 0;
+  Magnetvalue = 0;
+  Distancevalue = 0;
+  Motionvalue = 0;
   currentState = 1;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
@@ -125,14 +135,20 @@ void setup() {
   */
   pinMode(buttonPinMinus, INPUT);
   pinMode(buttonPinPlus, INPUT);
-  pinMode(buttonPinMenuSwitch, INPUT);
-  pinMode(LDR, INPUT);
+  pinMode(buttonPinMenuSwitch, INPUT);  
   pinMode(integratedLedPin, OUTPUT);
   pinMode(rPin, OUTPUT);
   pinMode(gPin, OUTPUT);
   pinMode(bPin, OUTPUT);
+
+  // sensors  
+  pinMode(Magnetpin, INPUT);
+  pinMode(LDRpin, INPUT);
   // Set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
+
+  //Serial port
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -144,6 +160,8 @@ void loop() {
   } else {
     normalDisplay();
   }
+  Serial.println("Current state is: ");
+  Serial.println(currentState);
 }
 
 void states() {
@@ -214,6 +232,47 @@ void determineStates() {
   //   currentState = 0;
   // }
   //Plus magnetic contact
+  if (currentState == 0) {
+    //check voor LDR + Magnet => useTypeUnknown
+    LDR();
+    Magnet();
+    if (LDRvalue > 500 && Magnetvalue == HIGH) {
+      currentState = 1;
+      digitalWrite(ledPin, HIGH);
+      Serial.println("Current state is: ");
+      Serial.println(currentState); 
+    }
+  }
+
+  if (currentState == 1) {
+    //check voor Motion + Distance + Magnet => useNumber1 or useCleaning
+    LDR();
+    Magnet();
+    Distance();
+    Motion();
+    if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
+      currentState = 2;      
+    }
+  }
+  if (currentState == 2) {
+    //check voor LDR + Distance + Magnet + Motion => useNumber2
+  }
+
+  if (currentState == 3) {
+    //check voor LDR + Magnet => triggeredShot
+  }
+
+  if (currentState == 4) {
+    //check voor LDR + Magnet => notInUse
+  }
+
+  if (currentState == 5) {
+    //check voor LDR + Magnet => trigger shot + notInUse
+  }
+
+  if (currentState == 6) {
+    //??
+  }
 
   // Check if useTypeUnknown
   // if(currentState == 0) {
@@ -256,6 +315,26 @@ void determineStates() {
     buttonStateMenuSwitchLast = buttonStateMenuSwitch;
   }
 }
+
+//Sensor Functions
+int LDR() {
+  LDRvalue = analogRead(LDRpin);
+  return LDRvalue;
+}
+
+int Magnet() {
+  Magnetvalue = digitalRead(Magnetpin);
+  return Magnetvalue;
+}
+
+void Motion() {
+
+}
+
+void Distance() {
+
+}
+
 
 void notInUse() {
   lcd.noDisplay();
