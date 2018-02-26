@@ -1,10 +1,14 @@
 /*
   Libraries
 */
+#include <OneWire.h>
 #include <LiquidCrystal.h>
 #include <NewPing.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+
+#define TRIGGER_PIN A4
+#define ECHO_PIN A5
+#define MAX_DISTANCE 200
+
 /*
   Classes
 */
@@ -67,10 +71,10 @@ const int rPin = 11, gPin = 10, bPin = 9;
 /*
   States:
   - notInUse = 0
-  - useNumber1 = 1
-  - useNumber2 = 2
-  - useCleaning = 3
-  - useTypeUnknown = 4
+  - useTypeUnknown = 1
+  - useNumber1 = 2
+  - useNumber2 = 3
+  - useCleaning = 4  
   - triggeredShot = 5
   - menuActive = 6
 */
@@ -106,6 +110,7 @@ int integratedLedState;
 int LDRvalue;
 int Magnetvalue;
 int Distancevalue;
+unsigned int dis [7] = {};
 int Motionvalue;
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -120,9 +125,9 @@ void setup() {
   */
   LDRvalue = 0;
   Magnetvalue = 0;
-  Distancevalue = 0;
+  Distancevalue = 0; 
   Motionvalue = 0;
-  currentState = 1;
+  currentState = 0;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
   buttonMinusPressed = false;
@@ -238,9 +243,7 @@ void determineStates() {
     Magnet();
     if (LDRvalue > 500 && Magnetvalue == HIGH) {
       currentState = 1;
-      digitalWrite(ledPin, HIGH);
-      Serial.println("Current state is: ");
-      Serial.println(currentState); 
+      digitalWrite(integratedLedPin, HIGH);       
     }
   }
 
@@ -250,8 +253,9 @@ void determineStates() {
     Magnet();
     Distance();
     Motion();
-    if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
-      currentState = 2;      
+    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100) {
+      currentState = 2;
+      digitalWrite(integratedLedPin, LOW);      
     }
   }
   if (currentState == 2) {
@@ -331,8 +335,26 @@ void Motion() {
 
 }
 
-void Distance() {
+int Distance() {
+  int n = 0; 
+  for (int i = 0; i < 7; i++) {
+    dis [i] = 0;
+  }  
 
+  for (int i = 0; i < 7; i++) {
+    delay(100);
+    dis [i]; 
+    Serial.println(dis[i]);
+  }
+
+  for (int i = 0; i < 7; i++) {
+    n = n + dis[i];
+    Serial.println(n);
+  }
+
+  Distancevalue = n/7;
+  Serial.println(Distancevalue);
+  return Distancevalue;
 }
 
 
