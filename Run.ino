@@ -245,7 +245,7 @@ void determineStates() {
     Magnet();
     if (LDRvalue > 500 && Magnetvalue == HIGH) {
       currentState = 1;
-      digitalWrite(integratedLedPin, HIGH);       
+      //digitalWrite(integratedLedPin, HIGH);       
     }
   }
 
@@ -256,12 +256,12 @@ void determineStates() {
     Magnet();
     Distance();
     Motion();
-    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100) {
+    if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
       currentState = 2;
-      digitalWrite(integratedLedPin, LOW);      
+      //digitalWrite(integratedLedPin, LOW);      
     }
-    else {
-      //currentState = 4;
+    if (LDRvalue > 500 && Magnetvalue == HIGH && Motionvalue == HIGH) {
+      currentState = 4;
     }
   }
 
@@ -301,14 +301,20 @@ void determineStates() {
 //Sensor Functions
 int LDR() {
   LDRvalue = analogRead(LDRpin);
+  Serial.println("LDRvalue is:");
+  Serial.println(LDRvalue);
 }
 
 int Magnet() {
   Magnetvalue = digitalRead(Magnetpin);
+  Serial.println("Magnetvalue is:");
+  Serial.println(Magnetvalue);
 }
 
 int Motion() {
   Motionvalue = digitalRead(Motionpin);
+  Serial.println("Motionvalue is:");
+  Serial.println(Motionvalue);
 }
 
 int Distance() {
@@ -320,14 +326,10 @@ int Distance() {
   for (int i = 0; i < 7; i++) {
     delay(100);
     dis [i] = sonar.ping_cm();
-    Serial.println("Distance is: ");
-    Serial.println(dis[i]);
   }
 
   for (int i = 0; i < 7; i++) {
     n = n + dis[i];
-    Serial.println("n is: ");
-    Serial.println(n);
   }
 
   Distancevalue = n/7;
