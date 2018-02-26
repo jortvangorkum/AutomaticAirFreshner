@@ -63,9 +63,13 @@ const int buttonPinMenuSwitch = 2;
 const int buttonPinMinus = A0;
 const int buttonPinPlus = A1;
 // Input pins sensors
+/* Distance pin => trigger pin = A4
+                => echo pin    = A5 
+These are difined at the inclusion of the NewPing Library.*/
 const int Magnetpin = A3;
 const int LDRpin = A2;
-const int ledPin =  13;
+const int Motionpin = 3;
+
 // Integrated LED
 const int integratedLedPin = 13;
 // RGB LED
@@ -151,6 +155,7 @@ void setup() {
   // sensors  
   pinMode(Magnetpin, INPUT);
   pinMode(LDRpin, INPUT);
+  pinMode(Motionpin, INPUT);
   // Set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 
@@ -256,7 +261,7 @@ void determineStates() {
       digitalWrite(integratedLedPin, LOW);      
     }
     else {
-      currentState = 4;
+      //currentState = 4;
     }
   }
 
@@ -269,7 +274,7 @@ void determineStates() {
   if (currentState == 4) {
     
   }
-  
+
    // Check if triggeredShot
   if(currentState == 1
   || currentState == 2
@@ -296,16 +301,14 @@ void determineStates() {
 //Sensor Functions
 int LDR() {
   LDRvalue = analogRead(LDRpin);
-  return LDRvalue;
 }
 
 int Magnet() {
   Magnetvalue = digitalRead(Magnetpin);
-  return Magnetvalue;
 }
 
-void Motion() {
-
+int Motion() {
+  Motionvalue = digitalRead(Motionpin);
 }
 
 int Distance() {
@@ -330,7 +333,6 @@ int Distance() {
   Distancevalue = n/7;
   Serial.println("Distancevalue is");
   Serial.println(Distancevalue);
-  return Distancevalue;
 }
 
 
