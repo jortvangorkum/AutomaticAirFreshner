@@ -233,14 +233,9 @@ void determineMenuStates() {
 }
 
 void determineStates() {
-  // Check if notInUse
-  // LDRvalue = analogRead(LDR);
-  // if (LDRvalue < 500){
-  //   currentState = 0;
-  // }
-  //Plus magnetic contact
+  //check for use => check voor LDR + Magnet => useTypeUnknown
   if (currentState == 0) {
-    //check voor LDR + Magnet => useTypeUnknown
+    
     LDR();
     Magnet();
     if (LDRvalue > 500 && Magnetvalue == HIGH) {
@@ -249,8 +244,9 @@ void determineStates() {
     }
   }
 
+  //check for use type => check voor LDR + Motion + Distance + Magnet => useNumber1 or useCleaning
   if (currentState == 1) {
-    //check voor Motion + Distance + Magnet => useNumber1 or useCleaning
+    
     LDR();
     Magnet();
     Distance();
@@ -259,47 +255,22 @@ void determineStates() {
       currentState = 2;
       digitalWrite(integratedLedPin, LOW);      
     }
+    else {
+      currentState = 4;
+    }
   }
+
+  //check for number type => check voor LDR + Distance + Magnet + Motion => useNumber2
   if (currentState == 2) {
-    //check voor LDR + Distance + Magnet + Motion => useNumber2
+    
   }
 
-  if (currentState == 3) {
-    //check voor LDR + Magnet => triggeredShot
-  }
-
+  //check if cleaning is finished => check voor LDR + Magnet => notInUse
   if (currentState == 4) {
-    //check voor LDR + Magnet => notInUse
+    
   }
-
-  if (currentState == 5) {
-    //check voor LDR + Magnet => trigger shot + notInUse
-  }
-
-  if (currentState == 6) {
-    //??
-  }
-
-  // Check if useTypeUnknown
-  // if(currentState == 0) {
-  //   LDRvalue = analogRead(LDR);
-  //   if (LDRvalue > 500){
-  //     currentState = 1;
-  //   }
-  // }
-  // Check if useNumber1
-  if(currentState == 4) {
-
-  }
-  // Check if useNumber2
-  if(currentState == 1) {
-
-  }
-  // Check if useCleaning
-  if(currentState == 4) {
-
-  }
-  // Check if triggeredShot
+  
+   // Check if triggeredShot
   if(currentState == 1
   || currentState == 2
   || currentState == 3
