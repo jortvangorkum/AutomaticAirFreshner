@@ -343,7 +343,7 @@ int Distance() {
 
   for (int i = 0; i < 7; i++) {
     delay(100);
-    dis [i]; 
+    dis [i] = sonar.ping_cm(); 
     Serial.println(dis[i]);
   }
 
