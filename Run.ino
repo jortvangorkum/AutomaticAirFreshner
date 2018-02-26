@@ -9,6 +9,8 @@
 #define ECHO_PIN A5
 #define MAX_DISTANCE 200
 
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+
 /*
   Classes
 */
@@ -312,7 +314,7 @@ void determineStates() {
     buttonStateMenuSwitch = digitalRead(buttonPinMenuSwitch);
 
     if (buttonStateMenuSwitch != buttonStateMenuSwitchLast && buttonStateMenuSwitch == LOW) {
-      currentState = 6;
+      //currentState = 6;
       lcd.clear();
     }
 
@@ -343,16 +345,19 @@ int Distance() {
 
   for (int i = 0; i < 7; i++) {
     delay(100);
-    dis [i] = sonar.ping_cm(); 
+    dis [i] = sonar.ping_cm();
+    Serial.println("Distance is: ");
     Serial.println(dis[i]);
   }
 
   for (int i = 0; i < 7; i++) {
     n = n + dis[i];
+    Serial.println("n is: ");
     Serial.println(n);
   }
 
   Distancevalue = n/7;
+  Serial.println("Distancevalue is");
   Serial.println(Distancevalue);
   return Distancevalue;
 }
