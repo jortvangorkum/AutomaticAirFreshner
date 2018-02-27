@@ -112,6 +112,9 @@ bool buttonPlusPressed;
 int temperature;
 // Integrated LED state
 int integratedLedState;
+// Timers
+Timer timer_testCleaning(10000, false);
+Timer timer_testUseNumber(25000, false);
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
@@ -244,8 +247,7 @@ void determineStates() {
     LDR();
     Magnet();
     if (LDRvalue > 500 && Magnetvalue == HIGH) {
-      currentState = 1;
-      //digitalWrite(integratedLedPin, HIGH);       
+      currentState = 1;       
     }
   }
 
@@ -258,16 +260,24 @@ void determineStates() {
     Motion();
     if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
       currentState = 2;
-      //digitalWrite(integratedLedPin, LOW);      
+            
     }
-    if (LDRvalue > 500 && Magnetvalue == HIGH && Motionvalue == HIGH) {
+    if (LDRvalue > 500 && Magnetvalue == HIGH && timer_testCleaning.Update()) {
       currentState = 4;
     }
   }
 
   //check for number type => check voor LDR + Distance + Magnet + Motion => useNumber2
   if (currentState == 2) {
-    
+
+    LDR();
+    Magnet();
+    Distance();
+    Motion();
+
+    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 80 && timer_testUseNumber.Update()) {
+      currentState = 3;
+    }
   }
 
   //check if cleaning is finished => check voor LDR + Magnet => notInUse
@@ -301,20 +311,14 @@ void determineStates() {
 //Sensor Functions
 int LDR() {
   LDRvalue = analogRead(LDRpin);
-  Serial.println("LDRvalue is:");
-  Serial.println(LDRvalue);
 }
 
 int Magnet() {
   Magnetvalue = digitalRead(Magnetpin);
-  Serial.println("Magnetvalue is:");
-  Serial.println(Magnetvalue);
 }
 
 int Motion() {
   Motionvalue = digitalRead(Motionpin);
-  Serial.println("Motionvalue is:");
-  Serial.println(Motionvalue);
 }
 
 int Distance() {
@@ -333,8 +337,6 @@ int Distance() {
   }
 
   Distancevalue = n/7;
-  Serial.println("Distancevalue is");
-  Serial.println(Distancevalue);
 }
 
 
@@ -345,7 +347,7 @@ void notInUse() {
 }
 
 void useTypeUnknown() {
-  lcd.display();
+  //lcd.display();
   // Purple
   setRGBColor(255, 0, 255);
 }
