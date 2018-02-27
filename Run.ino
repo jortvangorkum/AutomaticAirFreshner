@@ -113,8 +113,8 @@ int temperature;
 // Integrated LED state
 int integratedLedState;
 // Timers
-Timer timer_testCleaning(10000, false);
-Timer timer_testUseNumber(25000, false);
+Timer timer1(1000000, false);
+Timer timer2(1000000, false);
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
@@ -262,7 +262,7 @@ void determineStates() {
       currentState = 2;
             
     }
-    if (LDRvalue > 500 && Magnetvalue == HIGH && timer_testCleaning.Update()) {
+    if (timer1.Update() && LDRvalue > 500 && Magnetvalue == HIGH) {
       currentState = 4;
     }
   }
@@ -275,7 +275,7 @@ void determineStates() {
     Distance();
     Motion();
 
-    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 80 && timer_testUseNumber.Update()) {
+    if (timer2.Update() && LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100) {
       currentState = 3;
     }
   }
