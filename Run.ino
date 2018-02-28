@@ -251,7 +251,7 @@ void determineStates() {
     }
   }
 
-  //check for use type => check voor LDR + Motion + Distance + Magnet => useNumber1 or useCleaning
+  //check for use type => check voor LDR + Motion + Distance + Magnet + Timer => useNumber1 or useCleaning
   if (currentState == 1) {
     
     LDR();
@@ -262,12 +262,12 @@ void determineStates() {
       currentState = 2;
             
     }
-    if (timer1.Update() && LDRvalue > 500 && Magnetvalue == HIGH) {
+    else if (timer1.Update() && LDRvalue > 500 && Magnetvalue == HIGH) {
       currentState = 4;
     }
   }
 
-  //check for number type => check voor LDR + Distance + Magnet + Motion => useNumber2
+  //check for number type => check voor LDR + Distance + Magnet + Motion + Timer => useNumber2
   if (currentState == 2) {
 
     LDR();
