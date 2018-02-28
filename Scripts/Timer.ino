@@ -14,13 +14,50 @@ class Timer {
         boolean Update() {
             unsigned long currentMillis = millis();
 
-            if (done == false) {
+            if (done != true) {
                 if (currentMillis - previousMillis >= interval) {
                     done = true;
                     return true;
                 }
             } else {
                 return false;
+            }
+        }
+};
+
+class Timer {
+    unsigned long previousMillis;
+    long interval;
+    boolean done;
+    boolean unlimited;
+
+    public:
+        Timer(long inter, boolean unlim) {
+            interval = inter;
+            unlimited = unlim;
+
+            previousMillis = 0;
+            done = false;
+        }
+
+        boolean Update() {
+            unsigned long currentMillis = millis();
+
+            if (unlimited) {
+              if (currentMillis - previousMillis >= interval) {
+                return true;
+              } else {
+                return false;
+              }
+            } else {
+              if (done != true) {
+                if (currentMillis - previousMillis >= interval) {
+                  done = true;
+                  return true;
+                }
+              } else {
+                  return false;
+              }
             }
         }
 };

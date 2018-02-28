@@ -4,53 +4,13 @@
 #include <OneWire.h>
 #include <LiquidCrystal.h>
 #include <NewPing.h>
+#include <Timer.h>
 
 #define TRIGGER_PIN A4
 #define ECHO_PIN A5
 #define MAX_DISTANCE 200
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
-
-/*
-  Classes
-*/
-
-class Timer {
-    unsigned long previousMillis;
-    long interval;
-    boolean done;
-    boolean unlimited;
-
-    public:
-        Timer(long inter, boolean unlim) {
-            interval = inter;
-            unlimited = unlim;
-
-            previousMillis = 0;
-            done = false;
-        }
-
-        boolean Update() {
-            unsigned long currentMillis = millis();
-
-            if (unlimited) {
-              if (currentMillis - previousMillis >= interval) {
-                return true;
-              } else {
-                return false;
-              }
-            } else {
-              if (done != true) {
-                if (currentMillis - previousMillis >= interval) {
-                  done = true;
-                  return true;
-                }
-              } else {
-                  return false;
-              }
-            }
-        }
-};
 
 /*
   Constant variables
@@ -112,9 +72,11 @@ bool buttonPlusPressed;
 int temperature;
 // Integrated LED state
 int integratedLedState;
-// Timers
-Timer timer1(1000000, false);
-Timer timer2(1000000, false);
+//Timer
+Timer t;
+//Booleans
+boolean testCleaning;
+boolean testNumbertype;
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
@@ -123,10 +85,6 @@ unsigned int dis [7] = {};
 int Motionvalue;
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-
-/*
-  Timers
-*/
 
 void setup() {
   /*
@@ -258,11 +216,14 @@ void determineStates() {
     Magnet();
     Distance();
     Motion();
+    testCleaning = false;
+    t.after(1000, testforCleaning);
+
     if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
       currentState = 2;
             
     }
-    else if (timer1.Update() && LDRvalue > 500 && Magnetvalue == HIGH) {
+    else if (LDRvalue > 500 && Magnetvalue == HIGH && testCleaning) {
       currentState = 4;
     }
   }
@@ -274,8 +235,10 @@ void determineStates() {
     Magnet();
     Distance();
     Motion();
+    testNumbertype = false;
+    t.after(1000, testNumbers);
 
-    if (timer2.Update() && LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100) {
+    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100 && testNumbertype) {
       currentState = 3;
     }
   }
@@ -309,19 +272,19 @@ void determineStates() {
 }
 
 //Sensor Functions
-int LDR() {
+void LDR() {
   LDRvalue = analogRead(LDRpin);
 }
 
-int Magnet() {
+void Magnet() {
   Magnetvalue = digitalRead(Magnetpin);
 }
 
-int Motion() {
+void Motion() {
   Motionvalue = digitalRead(Motionpin);
 }
 
-int Distance() {
+void Distance() {
   int n = 0; 
   for (int i = 0; i < 7; i++) {
     dis [i] = 0;
@@ -339,7 +302,15 @@ int Distance() {
   Distancevalue = n/7;
 }
 
+void testforCleaning() {
+  testCleaning = true;
+}
 
+void testNumbers() {
+  testNumbertype = true;
+}
+
+//State Functions
 void notInUse() {
   lcd.noDisplay();
   // Off
