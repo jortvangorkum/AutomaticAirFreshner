@@ -4,13 +4,42 @@
 #include <OneWire.h>
 #include <LiquidCrystal.h>
 #include <NewPing.h>
-#include <Timer.h>
 
 #define TRIGGER_PIN A4
 #define ECHO_PIN A5
 #define MAX_DISTANCE 200
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+
+/*
+/ Timer
+*/
+class Timer {
+    unsigned long previousMillis;
+    long interval;
+    boolean done;
+
+    public:
+        Timer(long inter) {
+            interval = inter;
+
+            previousMillis = 0;
+            done = false;
+        }
+
+        boolean Update() {
+            unsigned long currentMillis = millis();
+
+            if (done != true) {
+                if (currentMillis - previousMillis >= interval) {
+                    done = true;
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        }
+};
 
 /*
   Constant variables
@@ -73,10 +102,8 @@ int temperature;
 // Integrated LED state
 int integratedLedState;
 //Timer
-Timer t;
-//Booleans
-boolean testCleaning;
-boolean testNumbertype;
+Timer timer1(2000);
+Timer timer2(4000);
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
@@ -125,7 +152,7 @@ void setup() {
 }
 
 void loop() {
-  states();
+  states();  
   determineStates();
   if (currentState == 6) {
     menuStates();
@@ -216,14 +243,12 @@ void determineStates() {
     Magnet();
     Distance();
     Motion();
-    testCleaning = false;
-    t.after(1000, testforCleaning);
 
     if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
       currentState = 2;
             
     }
-    else if (LDRvalue > 500 && Magnetvalue == HIGH && testCleaning) {
+    else if (LDRvalue > 500 && Magnetvalue == HIGH && timer1.Update()) {
       currentState = 4;
     }
   }
@@ -235,10 +260,8 @@ void determineStates() {
     Magnet();
     Distance();
     Motion();
-    testNumbertype = false;
-    t.after(1000, testNumbers);
 
-    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100 && testNumbertype) {
+    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100 && timer2.Update()) {
       currentState = 3;
     }
   }
@@ -300,14 +323,6 @@ void Distance() {
   }
 
   Distancevalue = n/7;
-}
-
-void testforCleaning() {
-  testCleaning = true;
-}
-
-void testNumbers() {
-  testNumbertype = true;
 }
 
 //State Functions
