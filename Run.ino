@@ -390,6 +390,7 @@ void menuActive() {
 void spray(int times) {
   for (int t = 0; t < times; t++) {
     // spray
+    sprayShots -= 1;
   }
 }
 
