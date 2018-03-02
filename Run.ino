@@ -4,6 +4,8 @@
 #include <OneWire.h>
 #include <LiquidCrystal.h>
 #include <NewPing.h>
+#include <EEPROM.h>
+#include <Arduino.h>
 
 #define TRIGGER_PIN A4
 #define ECHO_PIN A5
@@ -53,23 +55,29 @@ const int buttonPinMinus = A0;
 const int buttonPinPlus = A1;
 // Input pins sensors
 /* Distance pin => trigger pin = A4
-                => echo pin    = A5 
+                => echo pin    = A5
 These are difined at the inclusion of the NewPing Library.*/
 const int Magnetpin = A3;
 const int LDRpin = A2;
 const int Motionpin = 3;
-
 // Integrated LED
 const int integratedLedPin = 13;
 // RGB LED
 const int rPin = 11, gPin = 10, bPin = 9;
+// Adresses
+const int EEPROMVariablesAddress = 0;
+// Structs
+struct EEPROMVariables {
+  int sprayDelaySeconds;
+  int sprayShots;
+};
 /*
   States:
   - notInUse = 0
   - useTypeUnknown = 1
   - useNumber1 = 2
   - useNumber2 = 3
-  - useCleaning = 4  
+  - useCleaning = 4
   - triggeredShot = 5
   - menuActive = 6
 */
@@ -110,6 +118,8 @@ int Magnetvalue;
 int Distancevalue;
 unsigned int dis [7] = {};
 int Motionvalue;
+// EEPROM Variables saved
+bool EEPROMVariablesSaved;
 // Creating LCD object
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
@@ -119,9 +129,9 @@ void setup() {
   */
   LDRvalue = 0;
   Magnetvalue = 0;
-  Distancevalue = 0; 
+  Distancevalue = 0;
   Motionvalue = 0;
-  currentState = 0;
+  currentState = 1;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
   buttonMinusPressed = false;
@@ -129,18 +139,23 @@ void setup() {
   buttonStateMinusLast = HIGH;
   buttonStatePlusLast = HIGH;
   integratedLedState = LOW;
+  EEPROMVariablesSaved = true;
+  /*
+    Assign values to EEPROM variables
+  */
+  readEEPROM(EEPROMVariablesAddress);
   /*
     Assign Pins to OUTPUT or INPUT
   */
   pinMode(buttonPinMinus, INPUT);
   pinMode(buttonPinPlus, INPUT);
-  pinMode(buttonPinMenuSwitch, INPUT);  
+  pinMode(buttonPinMenuSwitch, INPUT);
   pinMode(integratedLedPin, OUTPUT);
   pinMode(rPin, OUTPUT);
   pinMode(gPin, OUTPUT);
   pinMode(bPin, OUTPUT);
 
-  // sensors  
+  // sensors
   pinMode(Magnetpin, INPUT);
   pinMode(LDRpin, INPUT);
   pinMode(Motionpin, INPUT);
@@ -152,7 +167,7 @@ void setup() {
 }
 
 void loop() {
-  states();  
+  states();
   determineStates();
   if (currentState == 6) {
     menuStates();
@@ -160,8 +175,8 @@ void loop() {
   } else {
     normalDisplay();
   }
-  Serial.println("Current state is: ");
-  Serial.println(currentState);
+  // Serial.println("Current state is: ");
+  // Serial.println(currentState);
 }
 
 void states() {
@@ -228,17 +243,17 @@ void determineMenuStates() {
 void determineStates() {
   //check for use => check voor LDR + Magnet => useTypeUnknown
   if (currentState == 0) {
-    
+
     LDR();
     Magnet();
     if (LDRvalue > 500 && Magnetvalue == HIGH) {
-      currentState = 1;       
+      currentState = 1;
     }
   }
 
   //check for use type => check voor LDR + Motion + Distance + Magnet + Timer => useNumber1 or useCleaning
   if (currentState == 1) {
-    
+
     LDR();
     Magnet();
     Distance();
@@ -246,7 +261,7 @@ void determineStates() {
 
     if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
       currentState = 2;
-            
+
     }
     else if (LDRvalue > 500 && Magnetvalue == HIGH && timer1.Update()) {
       currentState = 4;
@@ -268,7 +283,7 @@ void determineStates() {
 
   //check if cleaning is finished => check voor LDR + Magnet => notInUse
   if (currentState == 4) {
-    
+
   }
 
    // Check if triggeredShot
@@ -286,7 +301,7 @@ void determineStates() {
     buttonStateMenuSwitch = digitalRead(buttonPinMenuSwitch);
 
     if (buttonStateMenuSwitch != buttonStateMenuSwitchLast && buttonStateMenuSwitch == LOW) {
-      //currentState = 6;
+      currentState = 6;
       lcd.clear();
     }
 
@@ -308,10 +323,10 @@ void Motion() {
 }
 
 void Distance() {
-  int n = 0; 
+  int n = 0;
   for (int i = 0; i < 7; i++) {
     dis [i] = 0;
-  }  
+  }
 
   for (int i = 0; i < 7; i++) {
     delay(100);
@@ -327,14 +342,18 @@ void Distance() {
 
 //State Functions
 void notInUse() {
-  lcd.noDisplay();
   // Off
+  if (EEPROMVariablesSaved != true) {
+    writeEEPROM(EEPROMVariablesAddress);
+    EEPROMVariablesSaved = true;
+  }
+  lcd.noDisplay();
   setRGBColor(0, 0, 0);
 }
 
 void useTypeUnknown() {
-  //lcd.display();
   // Purple
+  lcd.display();
   setRGBColor(255, 0, 255);
 }
 
@@ -358,12 +377,13 @@ void useCleaning() {
 void triggeredShot() {
   // Red
   setRGBColor(255, 0, 0);
-
+  spray(1);
 }
 
 void menuActive() {
   // Blue
   setRGBColor(0, 0, 255);
+  EEPROMVariablesSaved = false;
 
 }
 
@@ -449,7 +469,7 @@ void manualSprayShot() {
   }
 
   if (buttonMinusPressed && buttonPlusPressed) {
-    spray(1);
+    triggeredShot();
     buttonMinusPressed = false;
     buttonPlusPressed = false;
   }
@@ -518,3 +538,22 @@ void setRGBColor(int red, int green, int blue) {
   analogWrite(bPin, blue);
 }
 
+void readEEPROM(int address) {
+  EEPROMVariables customVar;
+  EEPROM.get(address, customVar);
+  if (customVar.sprayDelaySeconds >= 0 && customVar.sprayShots >= 0) {
+    sprayDelaySeconds = customVar.sprayDelaySeconds;
+    sprayShots = customVar.sprayShots;
+  } else {
+    sprayDelaySeconds = 0;
+    sprayShots = 2400;
+  }
+}
+
+void writeEEPROM(int address) {
+  EEPROMVariables customVar = {
+    sprayDelaySeconds,
+    sprayShots
+  };
+  EEPROM.put(address, customVar);
+}
