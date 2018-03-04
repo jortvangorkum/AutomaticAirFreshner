@@ -131,7 +131,7 @@ void setup() {
   Magnetvalue = 0;
   Distancevalue = 0;
   Motionvalue = 0;
-  currentState = 1;
+  currentState = 0;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
   buttonMinusPressed = false;
@@ -197,7 +197,7 @@ void states() {
       useCleaning();
       break;
     case 5:
-      triggeredShot();
+      triggeredShot(0);
       break;
     case 6:
       menuActive();
@@ -292,6 +292,20 @@ void determineStates() {
   || currentState == 3
   || currentState == 4) {
 
+    LDR();
+    Magnet();
+    Motion();
+
+    if (LDRvalue < 300 && Magnetvalue == LOW && Motionvalue == LOW) {
+      if (currentState == 2) {
+        triggeredShot(1);
+      }
+      else if (currentState == 3) {
+        triggeredShot(2);
+      }
+    }
+
+
   }
   // Check if menuActive
   if(currentState == 1
@@ -301,7 +315,7 @@ void determineStates() {
     buttonStateMenuSwitch = digitalRead(buttonPinMenuSwitch);
 
     if (buttonStateMenuSwitch != buttonStateMenuSwitchLast && buttonStateMenuSwitch == LOW) {
-      currentState = 6;
+      //currentState = 6;
       lcd.clear();
     }
 
@@ -374,10 +388,10 @@ void useCleaning() {
 
 }
 
-void triggeredShot() {
+void triggeredShot(int n) {
   // Red
   setRGBColor(255, 0, 0);
-  spray(1);
+  spray(n);
 }
 
 void menuActive() {
@@ -389,7 +403,7 @@ void menuActive() {
 
 void spray(int times) {
   for (int t = 0; t < times; t++) {
-    // spray
+    // spray is voltage zetten over pin die we gaan gebruiken voor de verfrisser.
     sprayShots -= 1;
   }
 }
@@ -470,7 +484,7 @@ void manualSprayShot() {
   }
 
   if (buttonMinusPressed && buttonPlusPressed) {
-    triggeredShot();
+    triggeredShot(1);
     buttonMinusPressed = false;
     buttonPlusPressed = false;
   }
