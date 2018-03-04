@@ -287,10 +287,8 @@ void determineStates() {
   }
 
    // Check if triggeredShot
-  if(currentState == 1
-  || currentState == 2
-  || currentState == 3
-  || currentState == 4) {
+  if(currentState == 2
+  || currentState == 3) {
 
     LDR();
     Magnet();
