@@ -60,8 +60,8 @@ These are difined at the inclusion of the NewPing Library.*/
 const int Magnetpin = A3;
 const int LDRpin = A2;
 const int Motionpin = 3;
-// Integrated LED
-const int integratedLedPin = 13;
+// Toiletet Freshener Pin
+const int toiletFreshenerPin = 13;
 // RGB LED
 const int rPin = 11, gPin = 10, bPin = 9;
 // Adresses
@@ -107,8 +107,6 @@ bool buttonMinusPressed;
 bool buttonPlusPressed;
 // Ambient Temperature
 int temperature;
-// Integrated LED state
-int integratedLedState;
 //Timer
 Timer timer1(2000);
 Timer timer2(4000);
@@ -131,14 +129,13 @@ void setup() {
   Magnetvalue = 0;
   Distancevalue = 0;
   Motionvalue = 0;
-  currentState = 0;
+  currentState = 1;
   sprayDelaySeconds = 0;
   sprayShots = 2400;
   buttonMinusPressed = false;
   buttonPlusPressed = false;
   buttonStateMinusLast = HIGH;
   buttonStatePlusLast = HIGH;
-  integratedLedState = LOW;
   EEPROMVariablesSaved = true;
   /*
     Assign values to EEPROM variables
@@ -150,7 +147,7 @@ void setup() {
   pinMode(buttonPinMinus, INPUT);
   pinMode(buttonPinPlus, INPUT);
   pinMode(buttonPinMenuSwitch, INPUT);
-  pinMode(integratedLedPin, OUTPUT);
+  pinMode(toiletFreshenerPin, OUTPUT);
   pinMode(rPin, OUTPUT);
   pinMode(gPin, OUTPUT);
   pinMode(bPin, OUTPUT);
@@ -402,8 +399,10 @@ void menuActive() {
 
 void spray(int times) {
   for (int t = 0; t < times; t++) {
-    // spray is voltage zetten over pin die we gaan gebruiken voor de verfrisser.
-    delay(4000);
+    digitalWrite(toiletFreshenerPin, HIGH);
+    delay(1000);
+    digitalWrite(toiletFreshenerPin, LOW);
+    delay(500);
     sprayShots -= 1;
   }
 }
