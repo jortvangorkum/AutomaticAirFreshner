@@ -389,6 +389,7 @@ void useCleaning() {
 void triggeredShot(int n) {
   // Red
   setRGBColor(255, 0, 0);
+  delay(sprayDelaySeconds);
   spray(n);
 }
 
@@ -402,6 +403,7 @@ void menuActive() {
 void spray(int times) {
   for (int t = 0; t < times; t++) {
     // spray is voltage zetten over pin die we gaan gebruiken voor de verfrisser.
+    delay(4000);
     sprayShots -= 1;
   }
 }
