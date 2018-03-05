@@ -3,15 +3,13 @@
 */
 #include <OneWire.h>
 #include <LiquidCrystal.h>
-#include <NewPing.h>
+#include <DallasTemperature.h>
 #include <EEPROM.h>
 #include <Arduino.h>
 
-#define TRIGGER_PIN A4
-#define ECHO_PIN A5
-#define MAX_DISTANCE 200
-
-NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+#define ONE_WIRE_BUS A4
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
 
 /*
 / Timer
@@ -54,9 +52,6 @@ const int buttonPinMenuSwitch = 2;
 const int buttonPinMinus = A0;
 const int buttonPinPlus = A1;
 // Input pins sensors
-/* Distance pin => trigger pin = A4
-                => echo pin    = A5
-These are difined at the inclusion of the NewPing Library.*/
 const int Magnetpin = A3;
 const int LDRpin = A2;
 const int Motionpin = 3;
@@ -115,8 +110,6 @@ Timer timer2(4000);
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
-int Distancevalue;
-unsigned int dis [7] = {};
 int Motionvalue;
 // EEPROM Variables saved
 bool EEPROMVariablesSaved;
@@ -129,7 +122,6 @@ void setup() {
   */
   LDRvalue = 0;
   Magnetvalue = 0;
-  Distancevalue = 0;
   Motionvalue = 0;
   currentState = 0;
   sprayDelaySeconds = 0;
@@ -175,8 +167,7 @@ void loop() {
   } else {
     normalDisplay();
   }
-  // Serial.println("Current state is: ");
-  // Serial.println(currentState);
+  Temperature();
 }
 
 void states() {
@@ -251,15 +242,14 @@ void determineStates() {
     }
   }
 
-  //check for use type => check voor LDR + Motion + Distance + Magnet + Timer => useNumber1 or useCleaning
+  //check for use type => check voor LDR + Motion + Magnet + Timer => useNumber1 or useCleaning
   if (currentState == 1) {
 
     LDR();
     Magnet();
-    Distance();
     Motion();
 
-    if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && Distancevalue < 100) {
+    if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH) {
       currentState = 2;
 
     }
@@ -268,15 +258,14 @@ void determineStates() {
     }
   }
 
-  //check for number type => check voor LDR + Distance + Magnet + Motion + Timer => useNumber2
+  //check for number type => check voor LDR + Magnet + Motion + Timer => useNumber2
   if (currentState == 2) {
 
     LDR();
     Magnet();
-    Distance();
     Motion();
 
-    if (LDRvalue > 500 && Magnetvalue == LOW && Distancevalue < 100 && timer2.Update()) {
+    if (LDRvalue > 500 && Magnetvalue == LOW && timer2.Update()) {
       currentState = 3;
     }
   }
@@ -334,22 +323,10 @@ void Motion() {
   Motionvalue = digitalRead(Motionpin);
 }
 
-void Distance() {
-  int n = 0;
-  for (int i = 0; i < 7; i++) {
-    dis [i] = 0;
-  }
-
-  for (int i = 0; i < 7; i++) {
-    delay(100);
-    dis [i] = sonar.ping_cm();
-  }
-
-  for (int i = 0; i < 7; i++) {
-    n = n + dis[i];
-  }
-
-  Distancevalue = n/7;
+void Temperature() {
+  sensors.requestTemperatures();
+  temperature = sensors.getTempCByIndex(0);
+  Serial.println(temperature);
 }
 
 //State Functions
