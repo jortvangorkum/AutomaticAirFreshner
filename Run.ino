@@ -116,8 +116,8 @@ bool buttonPlusPressed;
 // Ambient Temperature
 int temperature;
 //Timer
-Timer timer1(4000);
-Timer timer2(10000);
+Timer timer1(5000);
+Timer timer2(120000);
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
@@ -287,7 +287,7 @@ void determineStates() {
     Magnet();
     Motion();
 
-    if (LDRvalue > 500 && Magnetvalue == LOW && timer2.Update()) {
+    if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH && timer2.Update()) {
       switchState(3);
     }
   }
@@ -301,7 +301,7 @@ void determineStates() {
     Magnet();
     Motion();
 
-    if (LDRvalue < 300 && Magnetvalue == LOW) {
+    if (LDRvalue < 300 && Magnetvalue == LOW && Motionvalue == LOW) {
       if (currentState == 2) {
         triggeredShot(1);
         switchState(0);
@@ -311,7 +311,7 @@ void determineStates() {
         switchState(0);
       }
       else if (currentState == 4) {
-        switchState(0)
+        switchState(0);
       }
     }
 
