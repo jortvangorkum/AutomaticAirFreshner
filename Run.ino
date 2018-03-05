@@ -307,14 +307,17 @@ void determineStates() {
     Magnet();
     Motion();
 
-    if (LDRvalue < 300 && Magnetvalue == LOW && Motionvalue == LOW) {
+    if (LDRvalue < 300 && Magnetvalue == LOW) {
       if (currentState == 2) {
         triggeredShot(1);
+        switchState(0);
       }
       else if (currentState == 3) {
         triggeredShot(2);
+        switchState(0);
       }
     }
+
 
 
   }
@@ -389,7 +392,7 @@ void useCleaning() {
 void triggeredShot(int n) {
   // Red
   setRGBColor(255, 0, 0);
-  delay(sprayDelaySeconds);
+  delay(sprayDelaySeconds * 1000);
   spray(n);
 }
 
