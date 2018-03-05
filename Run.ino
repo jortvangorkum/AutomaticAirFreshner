@@ -294,14 +294,10 @@ void determineStates() {
     }
   }
 
-  //check if cleaning is finished => check voor LDR + Magnet => notInUse
-  if (currentState == 4) {
-
-  }
-
    // Check if triggeredShot
   if(currentState == 2
-  || currentState == 3) {
+  || currentState == 3
+  || currentState == 4) {
 
     LDR();
     Magnet();
@@ -315,6 +311,9 @@ void determineStates() {
       else if (currentState == 3) {
         triggeredShot(2);
         switchState(0);
+      }
+      else if (currentState == 4) {
+        switchState(0)
       }
     }
 
