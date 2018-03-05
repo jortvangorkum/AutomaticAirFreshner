@@ -21,20 +21,33 @@ class Timer {
 
     public:
         Timer(long inter) {
+          Serial.println("TIMER CREATED");
             interval = inter;
 
-            previousMillis = 0;
+            previousMillis = millis();
             done = false;
+        }
+
+        void Start() {
+          Serial.print("STARTED AT ");
+          Serial.println(millis());
+          previousMillis = millis();
+          done = false;
         }
 
         boolean Update() {
             unsigned long currentMillis = millis();
+            Serial.print("UPDATE OF TIMER: ");
+            Serial.print(currentMillis);
+            Serial.print(" ");
+            Serial.println(previousMillis);
 
             if (done != true) {
                 if (currentMillis - previousMillis >= interval) {
                     done = true;
                     return true;
                 }
+                return false;
             } else {
                 return false;
             }
@@ -103,8 +116,8 @@ bool buttonPlusPressed;
 // Ambient Temperature
 int temperature;
 //Timer
-Timer timer1(2000);
-Timer timer2(4000);
+Timer timer1(4000);
+Timer timer2(10000);
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
@@ -121,7 +134,7 @@ void setup() {
   LDRvalue = 0;
   Magnetvalue = 0;
   Motionvalue = 0;
-  currentState = 1;
+  switchState(0);
   sprayDelaySeconds = 0;
   sprayShots = 2400;
   buttonMinusPressed = false;
@@ -145,7 +158,7 @@ void setup() {
   pinMode(bPin, OUTPUT);
 
   // sensors
-  pinMode(Magnetpin, INPUT);
+  pinMode(Magnetpin, INPUT_PULLUP);
   pinMode(LDRpin, INPUT);
   pinMode(Motionpin, INPUT);
   // Set up the LCD's number of columns and rows:
@@ -228,6 +241,21 @@ void determineMenuStates() {
   buttonStateMenuSwitchLast = buttonStateMenuSwitch;
 }
 
+void switchState(int state) {
+  Serial.print("SWITCHED STATE: ");
+  Serial.println(state);
+
+  currentState = state;
+
+  // start timer when switched to state 1
+  if (state == 1) {
+    timer1.Start();
+  }
+  if (state == 2) {
+    timer2.Start();
+  }
+}
+
 void determineStates() {
   //check for use => check voor LDR + Magnet => useTypeUnknown
   if (currentState == 0) {
@@ -235,7 +263,7 @@ void determineStates() {
     LDR();
     Magnet();
     if (LDRvalue > 500 && Magnetvalue == HIGH) {
-      currentState = 1;
+      switchState(1);
     }
   }
 
@@ -247,11 +275,10 @@ void determineStates() {
     Motion();
 
     if (LDRvalue > 500 && Magnetvalue == LOW && Motionvalue == HIGH) {
-      currentState = 2;
-
+      switchState(2);
     }
     else if (LDRvalue > 500 && Magnetvalue == HIGH && timer1.Update()) {
-      currentState = 4;
+      switchState(4);
     }
   }
 
@@ -263,7 +290,7 @@ void determineStates() {
     Motion();
 
     if (LDRvalue > 500 && Magnetvalue == LOW && timer2.Update()) {
-      currentState = 3;
+      switchState(3);
     }
   }
 
@@ -299,7 +326,7 @@ void determineStates() {
     buttonStateMenuSwitch = digitalRead(buttonPinMenuSwitch);
 
     if (buttonStateMenuSwitch != buttonStateMenuSwitchLast && buttonStateMenuSwitch == LOW) {
-      //currentState = 6;
+      switchState(6);
       lcd.clear();
     }
 
@@ -323,7 +350,6 @@ void Motion() {
 void Temperature() {
   sensors.requestTemperatures();
   temperature = sensors.getTempCByIndex(0);
-  Serial.println(temperature);
 }
 
 //State Functions
@@ -405,7 +431,7 @@ void remainingSprayShots() {
 }
 
 void returnToNotInUse() {
-  currentState = 0;
+  switchState(0);
 }
 
 void displayTemperature(int row) {
