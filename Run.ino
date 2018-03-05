@@ -135,8 +135,6 @@ void setup() {
   Magnetvalue = 0;
   Motionvalue = 0;
   switchState(0);
-  sprayDelaySeconds = 0;
-  sprayShots = 2400;
   buttonMinusPressed = false;
   buttonPlusPressed = false;
   buttonStateMinusLast = HIGH;
