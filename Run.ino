@@ -391,13 +391,13 @@ void triggeredShot(int n) {
   setRGBColor(255, 0, 0);
   delay(sprayDelaySeconds * 1000);
   spray(n);
+  writeEEPROM(EEPROMVariablesAddress);
 }
 
 void menuActive() {
   // Blue
   setRGBColor(0, 0, 255);
   EEPROMVariablesSaved = false;
-
 }
 
 void spray(int times) {
@@ -545,7 +545,6 @@ int lengthInt(int integer) {
   } else {
     return 1;
   }
-
   return result;
 }
 
