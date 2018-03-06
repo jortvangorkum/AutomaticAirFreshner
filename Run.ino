@@ -69,7 +69,7 @@ const int Magnetpin = A3;
 const int LDRpin = A2;
 const int Motionpin = 3;
 // Toiletet Freshener Pin
-const int toiletFreshenerPin = 13;
+const int toiletFreshenerPin = A5;
 // RGB LED
 const int rPin = 11, gPin = 10, bPin = 9;
 // Adresses
@@ -117,7 +117,7 @@ bool buttonPlusPressed;
 int temperature;
 //Timer
 Timer timer1(5000);
-Timer timer2(120000);
+Timer timer2(45000);
 // Variables for sensors
 int LDRvalue;
 int Magnetvalue;
@@ -403,7 +403,7 @@ void menuActive() {
 void spray(int times) {
   for (int t = 0; t < times; t++) {
     digitalWrite(toiletFreshenerPin, HIGH);
-    delay(1000);
+    delay(2000);
     digitalWrite(toiletFreshenerPin, LOW);
     delay(500);
     sprayShots -= 1;
